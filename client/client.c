@@ -7,13 +7,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 int main(int argc, char **argv) {
-    int sock_fd;
+    int client_fd;
     struct sockaddr_in server_addr;
     struct timespec current_time;
     uint64_t client_send_timestamp, server_recv_timestamp, server_send_timestamp, client_recv_timestamp;
     FILE* log_file;
+    int flag = 1;
 
     /* Read CMD arguments. */
     if (argc != 5) {
@@ -39,9 +41,15 @@ int main(int argc, char **argv) {
     fprintf(log_file, "CLIENT_RECV_TIME,SERVER_SENT_TIME,SERVER_RECV_TIME,CLIENT_SENT_TIME\n");
 
     // Create socket
-    if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
+    }
+
+    // Set TCP_NODELAY on the client socket
+    if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
+        perror("setsockopt TCP_NODELAY failed");
+        close(client_fd);
     }
 
     // Configure server address
@@ -57,7 +65,7 @@ int main(int argc, char **argv) {
     fprintf(stdout, "[CLIENT_RECV_TIME][SERVER_SENT_TIME][SERVER_RECV_TIME][CLIENT_SENT_TIME]\n");
 
     // Connect to server
-    if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+    if (connect(client_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Connection failed");
         exit(EXIT_FAILURE);
     }
@@ -68,19 +76,19 @@ int main(int argc, char **argv) {
         client_send_timestamp = (current_time.tv_sec * 1000000ull) + current_time.tv_nsec / 1000ull;
 
         // Send current timestamp
-        write(sock_fd, &client_send_timestamp, sizeof(uint64_t));
+        write(client_fd, &client_send_timestamp, sizeof(uint64_t));
         fprintf(stdout, "<- [][][][%" PRIu64 "]\n", client_send_timestamp);
 
         // Read timestamps from response
-        ssize_t bytes_read = read(sock_fd, &client_send_timestamp, sizeof(uint64_t));
+        ssize_t bytes_read = read(client_fd, &client_send_timestamp, sizeof(uint64_t));
         if (bytes_read <= 0) {
             exit(EXIT_FAILURE);
         }
-        bytes_read = read(sock_fd, &server_recv_timestamp, sizeof(uint64_t));
+        bytes_read = read(client_fd, &server_recv_timestamp, sizeof(uint64_t));
         if (bytes_read <= 0) {
             exit(EXIT_FAILURE);
         }
-        bytes_read = read(sock_fd, &server_send_timestamp, sizeof(uint64_t));
+        bytes_read = read(client_fd, &server_send_timestamp, sizeof(uint64_t));
         if (bytes_read <= 0) {
             exit(EXIT_FAILURE);
         }
@@ -96,6 +104,6 @@ int main(int argc, char **argv) {
                 client_recv_timestamp, server_send_timestamp, server_recv_timestamp, client_send_timestamp);
     }
 
-    close(sock_fd);
+    close(client_fd);
     return 0;
 }

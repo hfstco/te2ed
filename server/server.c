@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #include <sys/errno.h>
 
 int main(int argc, char **argv) {
@@ -20,6 +21,7 @@ int main(int argc, char **argv) {
     socklen_t client_len = sizeof(client_addr);
     struct timespec current_time;
     uint64_t client_send_timestamp, server_recv_timestamp, server_send_timestamp;
+    int flag = 1;
 
     /* Read CMD arguments. */
     if (argc != 2) {
@@ -38,6 +40,14 @@ int main(int argc, char **argv) {
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
+
+    // Set SO_REUSEADDR to allow quick restart
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) < 0) {
+        perror("setsockopt SO_REUSEADDR failed");
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
+
 
     // Configure server address
     memset(&server_addr, 0, sizeof(server_addr));
@@ -66,6 +76,14 @@ int main(int argc, char **argv) {
             perror("Accept failed");
             continue;
         }
+
+        // Set TCP_NODELAY on the client socket
+        if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
+            perror("setsockopt TCP_NODELAY failed");
+            close(client_fd);
+            continue;
+        }
+
 
         fprintf(stdout, "\nClient connected from %s:%d\n",
                 inet_ntoa(client_addr.sin_addr),
