@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     FILE* log_file;
 
     /* Read CMD arguments. */
-    if (argc != 4) {
+    if (argc != 5) {
         fprintf(stderr, "Usage: %s <ip_addr> <port> <iterations>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     int iterations = atoi(argv[3]);
 
     // Open log file in append mode
-    log_file = fopen("log.csv", "a");
+    log_file = fopen(argv[4], "a");
     if (log_file == NULL) {
         perror("Failed to open log file");
         exit(EXIT_FAILURE);
