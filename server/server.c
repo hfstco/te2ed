@@ -57,6 +57,9 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
+    fprintf(stdout, "Server ready.\n");
+    fprintf(stdout, "[CLIENT_RECV_TIME][SERVER_SENT_TIME][SERVER_RECV_TIME][CLIENT_SENT_TIME]\n");
+
     while (1) {
         // Accept client connection
         if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_len)) < 0) {
@@ -83,7 +86,7 @@ int main(int argc, char **argv) {
             /* Get recv time. */
             clock_gettime(CLOCK_REALTIME, &current_time);
             server_recv_timestamp = (current_time.tv_sec * 1000000ull) + current_time.tv_nsec / 1000ull;
-            fprintf(stdout, "-> [%" PRIu64 "][%" PRIu64 "]\n", client_send_timestamp, server_recv_timestamp);
+            fprintf(stdout, "-> [][][%" PRIu64 "][%" PRIu64 "]\n", server_recv_timestamp, client_send_timestamp);
 
             /* Server processing here. */
 
@@ -102,7 +105,7 @@ int main(int argc, char **argv) {
                 break;
             }
             free(buffer);
-            fprintf(stdout, "<- [%" PRIu64 "][%" PRIu64 "][%" PRIu64 "]\n", client_send_timestamp, server_recv_timestamp, server_send_timestamp);
+            fprintf(stdout, "<- [][%" PRIu64 "][%" PRIu64 "][%" PRIu64 "]\n", server_send_timestamp, server_recv_timestamp, client_send_timestamp);
         }
 
         close(client_fd);

@@ -53,6 +53,9 @@ int main(int argc, char **argv) {
     }
     server_addr.sin_port = htons(port);
 
+    fprintf(stdout, "Client ready.\n");
+    fprintf(stdout, "[CLIENT_RECV_TIME][SERVER_SENT_TIME][SERVER_RECV_TIME][CLIENT_SENT_TIME]\n");
+
     // Connect to server
     if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Connection failed");
@@ -66,7 +69,7 @@ int main(int argc, char **argv) {
 
         // Send current timestamp
         write(sock_fd, &client_send_timestamp, sizeof(uint64_t));
-        fprintf(stdout, "<- [%" PRIu64 "]\n", client_send_timestamp);
+        fprintf(stdout, "<- [][][][%" PRIu64 "]\n", client_send_timestamp);
 
         // Read timestamps from response
         ssize_t bytes_read = read(sock_fd, &client_send_timestamp, sizeof(uint64_t));
@@ -86,11 +89,11 @@ int main(int argc, char **argv) {
         clock_gettime(CLOCK_REALTIME, &current_time);
         client_recv_timestamp = (current_time.tv_sec * 1000000ull) + current_time.tv_nsec / 1000ull;
 
-        fprintf(stdout, "-> [%" PRIu64 "][%" PRIu64 "][%" PRIu64 "][%" PRIu64 "]\n", client_send_timestamp, server_recv_timestamp, server_send_timestamp, client_recv_timestamp);
+        fprintf(stdout, "-> [%" PRIu64 "][%" PRIu64 "][%" PRIu64 "][%" PRIu64 "]\n", client_recv_timestamp, server_send_timestamp, server_recv_timestamp, client_send_timestamp);
 
         // Log to file
         fprintf(log_file, "%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n",
-                client_send_timestamp, server_recv_timestamp, server_send_timestamp, client_recv_timestamp);
+                client_recv_timestamp, server_send_timestamp, server_recv_timestamp, client_send_timestamp);
     }
 
     close(sock_fd);
