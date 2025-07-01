@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     int iterations = atoi(argv[3]);
 
     // Open log file in append mode
-    log_file = fopen(argv[4], "a");
+    log_file = fopen(argv[4], "w");
     if (log_file == NULL) {
         perror("Failed to open log file");
         exit(EXIT_FAILURE);
