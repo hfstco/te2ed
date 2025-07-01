@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     // Write csv header
-    fprintf(log_file, "%s,%s,%s,%s\n", "client_send_timestamp", "server_recv_timestamp", "server_send_timestamp", "client_recv_timestamp");
+    fprintf(log_file, "CLIENT_RECV_TIME,SERVER_SENT_TIME,SERVER_RECV_TIME,CLIENT_SENT_TIME\n");
 
     // Create socket
     if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
