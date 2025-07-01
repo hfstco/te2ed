@@ -4,4 +4,4 @@ te2ed is a simple tool to measure end-to-end delays.
 
 Usage:
 ./te2ed_server <port>
-./te2ed_client <ip> <port> <iterations>
+./te2ed_client <ip> <port> <iterations> <log_file>
